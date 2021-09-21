@@ -1,0 +1,26 @@
+﻿71032 Böblingen
+71083 Herrenberg
+71088 Holzgerlingen
+71229 Leonberg
+71272 Renningen
+71063 Sindelfingen
+71111 Waldenbuch
+71263 Weil der Stadt
+71134 Aidlingen
+71155 Altdorf
+71149 Bondorf
+75392 Deckenpfronn
+71139 Ehningen
+71116 Gärtringen
+71126 Gäufelden
+71120 Grafenau
+71157 Hildrizhausen
+71131 Jettingen
+71106 Magstadt
+71159 Mötzingen
+71154 Nufringen
+71277 Rutesheim
+71101 Schönaich
+71144 Steinenbronn
+71093 Weil im Schönbuch
+71287 Weissach
