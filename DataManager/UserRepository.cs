@@ -113,6 +113,8 @@ namespace Data
           .Select(ui => Serializer.Serialize(ui.Key, ui.Value, _communityRepository.GetId)).ToList()
       });
 
+      Directory.CreateDirectory(Path.GetDirectoryName(fileName));
+
       File.WriteAllText(fileName, data);
     }
   }
