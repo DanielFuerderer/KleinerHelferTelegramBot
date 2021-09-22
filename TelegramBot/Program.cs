@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Text;
 using Data;
 using Telegram.Bot.Types;
@@ -8,8 +9,9 @@ namespace TelegramBot
 {
   internal class Program
   {
-    private const string DataFile = @"Data\data.json";
-    private const string UserFile = @"Data\user.json";
+    private static readonly string DataFile = Path.Combine("Data", "data.json");
+    private static readonly string UserFile = Path.Combine("Data", "user.json");
+    private static readonly string UserStatistics = Path.Combine("Data", "userstatistics.json");
     private const string BotToken = @"1953528295:AAEnLBu_KVzYMbAx17L3_1Ujow9uO-dbUiE";
 
     private static void Main(string[] args)
@@ -19,10 +21,14 @@ namespace TelegramBot
       var telegramBotClient = new TelegramBotClient(BotToken);
       var conversationManager = new ConversationManager(telegramBotClient, userRepository, communityRepository);
       var backupService = new BackupService(userRepository, communityRepository);
+      var messageStatisticRepository = new MessageStatisticRepository(UserStatistics, userRepository);
+      var messageStatisticService = new MessageStatistic.MessageStatisticService(telegramBotClient, messageStatisticRepository);
 
       telegramBotClient.OnUserJoinedGroup += (user, group) =>
       {
         Console.WriteLine($"User '{GetDisplayName(user)}' (@{user.Username}) joined group '{group.Title}'");
+
+        //telegramBotClient.Write(group, $"Hallo {GetDisplayName(user)}");  
       };
 
       telegramBotClient.OnUserLeftGroup += (user, group) =>
@@ -41,20 +47,16 @@ namespace TelegramBot
 
       if (!string.IsNullOrEmpty(user.FirstName))
       {
-        name.Append(user.FirstName);
+        return user.FirstName;
       }
-
-      if (!string.IsNullOrEmpty(user.LastName))
+      else if (!string.IsNullOrEmpty(user.LastName))
       {
-        if (name.Length != 0)
-        {
-          name.Append(", ");
-        }
-
-        name.Append(user.LastName);
+        return user.LastName;
       }
-
-      return name.ToString();
+      else
+      {
+        return user.Username;
+      }
     }
   }
 }

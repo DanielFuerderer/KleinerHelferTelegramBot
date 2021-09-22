@@ -31,11 +31,13 @@ namespace TelegramBot
 
     public long? Me { get; set; }
 
-    public UserGroupAction OnUserLeftGroup { get; set; }
+    public event UserGroupAction OnUserLeftGroup;
 
-    public UserGroupAction OnUserJoinedGroup { get; set; }
+    public event UserGroupAction OnUserJoinedGroup;
 
-    public MessageAction OnPrivateMessage { get; set; }
+    public event MessageAction OnPrivateMessage;
+
+    public event MessageAction OnGroupMessage;
 
     public void Write(Chat chat, string text)
     {
@@ -52,10 +54,10 @@ namespace TelegramBot
     {
       _telegramBotClient.SendTextMessageAsync(chat.Id, text, parseMode,
         replyMarkup: new ReplyKeyboardMarkup(replyOptions.Select(t => new KeyboardButton(t)))
-          { OneTimeKeyboard = true }).Wait(500);
+        { OneTimeKeyboard = true }).Wait(500);
     }
 
-    private void TelegramBotClientOnUpdate(object? sender, UpdateEventArgs e)
+    private void TelegramBotClientOnUpdate(object sender, UpdateEventArgs e)
     {
       Console.WriteLine($"============  OnUpdate [{e.Update.Id}] =============");
       ShowProperties(e.Update, nameof(e.Update.Id), nameof(e.Update.Type));
@@ -177,7 +179,7 @@ namespace TelegramBot
         string.Join(", ", propertiesToDisplay.Select(prop => $"{prop.Name}: {prop.GetValue(instance)}")));
     }
 
-    private void TelegramBotClientOnMessage(object? sender, MessageEventArgs e)
+    private void TelegramBotClientOnMessage(object sender, MessageEventArgs e)
     {
       Console.WriteLine($"============  OnMessage [{e.Message.MessageId}] ============");
 
@@ -209,6 +211,10 @@ namespace TelegramBot
       if (message.Chat.Type == ChatType.Private)
       {
         OnPrivateMessage?.Invoke(message.From, message.Chat, message);
+      }
+      else if (message.Chat.Type == ChatType.Group || message.Chat.Type == ChatType.Supergroup)
+      {
+        OnGroupMessage?.Invoke(message.From, message.Chat, message);
       }
     }
 

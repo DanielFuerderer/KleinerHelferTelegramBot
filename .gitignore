@@ -2,3 +2,5 @@
 *.user
 bin
 obj
+.vs
+publish_linux
