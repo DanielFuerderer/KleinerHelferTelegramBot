@@ -24,23 +24,30 @@ namespace Data
     {
       FileName = fileName;
 
-      if (File.Exists(fileName))
+      if (!File.Exists(fileName))
       {
-        var serializedData = File.ReadAllText(fileName);
+        return;
+      }
 
-        var result = JsonSerializer.Deserialize<CommunityFile>(serializedData);
+      var serializedData = File.ReadAllText(fileName);
 
-        foreach (var community in result.Communities)
-        {
-          _communities.Add(community.Id, Serializer.Deserialize(community));
-        }
+      if (string.IsNullOrEmpty(serializedData))
+      {
+        return;
+      }
 
-        _counties.AddRange(result.Counties.Select(c => Serializer.Deserialize(c, _communities)));
+      var result = JsonSerializer.Deserialize<CommunityFile>(serializedData);
 
-        foreach (var institution in result.Institutions)
-        {
-          _institutions.Add(institution.Id, Serializer.Deserialize(institution, _communities));
-        }
+      foreach (var community in result.Communities)
+      {
+        _communities.Add(community.Id, Serializer.Deserialize(community));
+      }
+
+      _counties.AddRange(result.Counties.Select(c => Serializer.Deserialize(c, _communities)));
+
+      foreach (var institution in result.Institutions)
+      {
+        _institutions.Add(institution.Id, Serializer.Deserialize(institution, _communities));
       }
     }
 
@@ -94,13 +101,13 @@ namespace Data
       return _institutions.FirstOrDefault(i => i.Value == arg).Key;
     }
 
-    public void AddCommunity(Community community, Action<Community> communityExistsAlready)
+    public void AddCommunity(Community community, Action<Community>? communityExistsAlready)
     {
       var communityId = new CommunityId(community.ZipCode);
 
       if (_communities.TryGetValue(communityId, out var existingCommunity))
       {
-        communityExistsAlready(existingCommunity);
+        communityExistsAlready?.Invoke(existingCommunity);
 
         return;
       }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Data;
 using Data.Data;
@@ -15,7 +16,6 @@ namespace TelegramBot.MessageHandler
     private readonly MainCommandsMessageHandler _mainMenuMessageHandler;
     private readonly ITelegramBotClient _telegramBotClient;
     private readonly IUserRepository _userRepository;
-    private string _enteredInstitution;
 
     public AssignInstitutionMessageHandler(ICommunityRepository communityRepository, IUserRepository userRepository,
       ITelegramBotClient telegramBotClient, MainCommandsMessageHandler mainMenuMessageHandler)
@@ -47,104 +47,76 @@ Bitte schreibe mir den Namen deiner Einrichtung und ich füge sie zu deiner Geme
 Ist die gewünschte Einrichtung nicht aufgelistet, kannst du sie durch freie Eingabe hinzufügen.";
       }
 
-      _telegramBotClient.Write(message.Chat, text);
+      _telegramBotClient.Write(
+        message.Chat,
+        text,
+        institutions.Select(i => i.Name).Concat(new[] { Cancel }).ToArray());
 
-      return this;
+      return new GetInstitutionMessageHandler(
+        _telegramBotClient,
+        _communityRepository,
+        _userRepository,
+        _mainMenuMessageHandler,
+        institution => AssignInstitution(message.From.Id, message.Chat, institution),
+        () => OnAbort(message.Chat));
     }
 
-    public IMessageHandler Handle(Message message)
+    private IMessageHandler OnAbort(Chat chat)
     {
-      var input = message.Text.Trim(' ');
+      _telegramBotClient.Write(chat, "Einrichtung zuweisen abgebrochen.");
 
-      if (input.Equals(Cancel, StringComparison.CurrentCultureIgnoreCase))
-      {
-        return _mainMenuMessageHandler;
-      }
+      return _mainMenuMessageHandler;
+    }
 
-      var institutions = _communityRepository.Institutions
-        .Where(c => string.Equals(c.Name, message.Text, StringComparison.CurrentCultureIgnoreCase)).ToArray();
-
-      if (institutions.Length > 1)
-        // Multiple institution with same name is not supported
-      {
-        return this;
-      }
-
-      var institution = institutions.FirstOrDefault();
-
-      if (!string.IsNullOrEmpty(_enteredInstitution) && message.Text.StartsWith("Neue Institution") &&
-          message.Text.EndsWith("anlegen."))
-      {
-        var userInformation = _userRepository[message.From.Id.ToString()];
-        var userCommunity = userInformation.Community;
-
-        institution = new Institution(_enteredInstitution, userCommunity);
-        _communityRepository.AddInstitution(institution);
-        _communityRepository.Save();
-
-        _userRepository.StartUpdate(userInformation).AddInstitution(institution).Commit();
-
-        _userRepository.Save();
-
-        _telegramBotClient.Write(message.Chat,
-          $"Institution '{institution.Name}' wurde deiner Gemeinde '{institution.Community.Name}' und dir hinzugefügt.");
-
-        return _mainMenuMessageHandler;
-      }
-
-      if (institution == null)
-      {
-        var similarMatches = _communityRepository.Institutions.Select(i => new
-        {
-          Distance = TextHelper.Compute(i.Name, message.Text), Value = i.Name,
-          Threshold = Math.Round(message.Text.Length * 0.2, MidpointRounding.AwayFromZero)
-        }).OrderBy(ri => ri.Distance).Where(ri => ri.Distance <= ri.Threshold).Take(3).ToArray();
-
-        var similarInstitutions = similarMatches.Select(sm => sm.Value).ToArray();
-
-        var text = $"Ich konnte die Institution {message.Text} nicht eindeutig zuordnen.";
-        if (similarMatches.Any())
-        {
-          text += $@"
-
-Meintest du vielleicht eine der folgenden Einrichtung? 
-
-{string.Join(Environment.NewLine, similarInstitutions)}";
-        }
-
-        var communityName = _userRepository[message.From.Id.ToString()].Community.Name;
-        _enteredInstitution = message.Text;
-        _telegramBotClient.Write(message.Chat, text, new[]
-        {
-          $"Neue Institution '{_enteredInstitution}' für deine Gemeinde {communityName} anlegen.",
-          Cancel
-        }.Concat(similarInstitutions).ToArray());
-
-        return this;
-      }
-
-      var user = _userRepository[message.From.Id.ToString()];
+    private IMessageHandler AssignInstitution(long fromId, Chat chat, Institution institution)
+    {
+      var user = _userRepository[fromId.ToString()];
       var institutionUsers = _userRepository.GetUsersFrom(institution).ToArray();
 
-      if (user.AssociatedInstitutions.Contains(institution))
+      if (user.AssociatedInstitutions.Contains(institution, InstitutionComparer.Instance))
       {
-        _telegramBotClient.Write(message.Chat, "Die Institution ist dir bereits zugewiesen.");
+        _telegramBotClient.Write(chat, "Die Institution ist dir bereits zugewiesen.");
         return _mainMenuMessageHandler;
       }
 
       _userRepository.StartUpdate(user).AddInstitution(institution).Commit();
-
       _userRepository.Save();
 
-      _telegramBotClient.Write(message.Chat, $"Ich habe dir die Institution '{institution.Name}' zugewiesen.");
+      _telegramBotClient.Write(chat, $"Ich habe dir die Institution '{institution.Name}' zugewiesen.");
 
       if (institutionUsers.Any())
       {
-        _telegramBotClient.Write(message.Chat,
+        _telegramBotClient.Write(chat,
           $"Für diese Institution gibt es bereits {institution.Name} interessierte. Du bist nicht allein!");
       }
 
       return _mainMenuMessageHandler;
     }
+
+    public IMessageHandler Handle(Message message)
+    {
+      return this;
+    }
+  }
+
+  internal class InstitutionComparer : IEqualityComparer<Institution>
+  {
+    public bool Equals(Institution x, Institution y)
+    {
+      if (ReferenceEquals(x, y)) return true;
+      if (ReferenceEquals(x, null)) return false;
+      if (ReferenceEquals(y, null)) return false;
+      if (x.GetType() != y.GetType()) return false;
+
+      return x.Name == y.Name
+             && Equals(x.Community.ZipCode, y.Community.ZipCode);
+    }
+
+    public int GetHashCode(Institution obj)
+    {
+      return HashCode.Combine(obj.Name, obj.Community);
+    }
+
+    public static IEqualityComparer<Institution> Instance { get; } = new InstitutionComparer();
   }
 }

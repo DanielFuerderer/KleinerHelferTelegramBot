@@ -51,7 +51,7 @@ namespace TelegramBot.MessageHandler
         _userRepository.Save();
 
         handler = new WelcomeMessageHandler(_telegramBotClient,
-          new AssignZipCodeMessageHandler(_telegramBotClient, _userRepository, _communityRepository,
+          new AssignCommunityMessageHandler(_telegramBotClient, _userRepository, _communityRepository,
             _mainMenuMessageHandler));
       }
 
