@@ -9,8 +9,8 @@ namespace TelegramBot
 {
   internal class Program
   {
-    private static readonly string DataFile = Path.Combine("Data", "data.json");
-    private static readonly string UserFile = Path.Combine("Data", "user.json");
+    private static readonly string DataFile = Path.Combine("Data", "communities.json");
+    private static readonly string UserFile = Path.Combine("Data", "users.json");
     private static readonly string UserStatistics = Path.Combine("Data", "userstatistics.json");
     private const string BotToken = @"1953528295:AAEnLBu_KVzYMbAx17L3_1Ujow9uO-dbUiE";
 
