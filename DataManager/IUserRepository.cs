@@ -18,6 +18,8 @@ namespace Data
 
     IEnumerable<UserInformation> GetUsersFrom(Community community);
 
+    IEnumerable<UserInformation> GetAssignedUsers();
+
     IEnumerable<UserInformation> GetUsersFrom(Institution institution);
 
     void Save();

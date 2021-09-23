@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Data;
 using Data.Data;
 using Telegram.Bot.Types;
@@ -10,7 +11,7 @@ namespace TelegramBot.MessageHandler
   {
     private readonly ICommunityRepository _communityRepository;
 
-    private readonly Dictionary<User, ConversationInfo> _handlers = new Dictionary<User, ConversationInfo>();
+    private readonly Dictionary<User, ConversationInfo> _handlers = new Dictionary<User, ConversationInfo>(IdUserEqualityComparer.Instance);
 
     private readonly MainCommandsMessageHandler _mainMenuMessageHandler;
 
@@ -29,7 +30,8 @@ namespace TelegramBot.MessageHandler
         new ShowUserInfoMessageHandler(_telegramBotClient, _userRepository),
         mmh => new AssignInstitutionMessageHandler(_communityRepository, _userRepository, _telegramBotClient, mmh),
         mmh => new RemoveInstitutionMessageHandler(_userRepository, _telegramBotClient, mmh),
-        new ShowStatisticMessageHandler(_telegramBotClient, new UserStatisticService(_userRepository)));
+        new ShowStatisticMessageHandler(_telegramBotClient, new UserStatisticService(_userRepository)),
+        this);
     }
 
     public ConversationInfo Get(User user)
@@ -67,6 +69,40 @@ namespace TelegramBot.MessageHandler
       var handler = Get(message.From);
 
       handler.Handle(message);
+    }
+
+    public void Activate(IMessageHandler messageHandler, Message message)
+    {
+      var user = message.From.IsBot
+        ? new User
+        {
+          Id = message.Chat.Id,
+          FirstName = message.Chat.FirstName,
+          Username = message.Chat.Username
+        }
+        : message.From;
+
+      var handler = Get(user);
+
+      handler.Active(messageHandler, message);
+    }
+  }
+
+  internal class IdUserEqualityComparer : IEqualityComparer<User>
+  {
+    public static IdUserEqualityComparer Instance = new IdUserEqualityComparer();
+
+    public bool Equals([AllowNull] User x, [AllowNull] User y)
+    {
+      if (ReferenceEquals(x, y)) return true;
+      if (x == null || y == null) return false;
+
+      return x.Id == y.Id;
+    }
+
+    public int GetHashCode([DisallowNull] User obj)
+    {
+      return obj.Id.GetHashCode();
     }
   }
 }

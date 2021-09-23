@@ -36,13 +36,15 @@ namespace TelegramBot.MessageHandler
 
     public IMessageHandler OnEnter(Message message)
     {
+      var userId = message.From.IsBot ? message.Chat.Id : message.From.Id;
+
       _telegramBotClient.Write(message.Chat, "Bitte teile mir deine Postleitzahl oder Name deiner Gemeinde mit: ");
 
       return new GetCommunityMessageHandler(
         _telegramBotClient,
         _communityRepository,
         this,
-        c => OnGetCommunity(message.From.Id.ToString(), message.Chat, c));
+        c => OnGetCommunity(userId.ToString(), message.Chat, c));
     }
 
     private IMessageHandler OnGetCommunity(string userId, Chat chat, Community community)

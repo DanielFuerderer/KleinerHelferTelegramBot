@@ -19,6 +19,6 @@ namespace TelegramBot
     void Write(Chat chat, string text, params string[] replyOptions);
     void Write(Chat chat, string text, ParseMode parseMode = default, params string[] replyOptions);
 
-    void ShowMenu(Chat chat, string text, IEnumerable<(string, string, Action<Message>)> buttons);
+    void ShowMenu(Chat chat, string text, IEnumerable<(string, string, Func<Message, bool>)> buttons);
   }
 }

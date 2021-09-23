@@ -20,32 +20,39 @@ namespace Data
 
       _userRepository = userRepository;
 
+      string serializedData = null;
+
       if (File.Exists(fileName))
       {
-        var serializedData = File.ReadAllText(fileName);
+        serializedData = File.ReadAllText(fileName);
+      }
 
-        var result = JsonSerializer.Deserialize<Entities.UserMessageStatisticFile>(serializedData);
+      if (String.IsNullOrEmpty(serializedData))
+      {
+        return;
+      }
 
-        foreach (var userMessageStatistic in result.UserMessageStatistics)
+      var result = JsonSerializer.Deserialize<Entities.UserMessageStatisticFile>(serializedData);
+
+      foreach (var userMessageStatistic in result.UserMessageStatistics)
+      {
+        var user = userRepository[userMessageStatistic.UserId];
+
+        var dayGroupMessageStatistic = new HashSet<DayGroupMessageStatistic>();
+        _userMessageStatistics.Add(user, dayGroupMessageStatistic);
+
+        foreach (var group in userMessageStatistic.Groups)
         {
-          var user = userRepository[userMessageStatistic.UserId];
-
-          var dayGroupMessageStatistic = new HashSet<DayGroupMessageStatistic>();
-          _userMessageStatistics.Add(user, dayGroupMessageStatistic);
-
-          foreach (var group in userMessageStatistic.Groups)
+          foreach (var day in group.DayStatistics)
           {
-            foreach (var day in group.DayStatistics)
+            dayGroupMessageStatistic.Add(new DayGroupMessageStatistic(
+              DateTime.ParseExact(day.Date, PersistenceDateTimeFormat, null),
+              group.ChatId)
             {
-              dayGroupMessageStatistic.Add(new DayGroupMessageStatistic(
-                DateTime.ParseExact(day.Date, PersistenceDateTimeFormat, null),
-                group.ChatId)
-              {
-                Forwards = day.MessageStatistic.Forwards,
-                Links = day.MessageStatistic.Links,
-                Total = day.MessageStatistic.Total
-              });
-            }
+              Forwards = day.MessageStatistic.Forwards,
+              Links = day.MessageStatistic.Links,
+              Total = day.MessageStatistic.Total
+            });
           }
         }
       }

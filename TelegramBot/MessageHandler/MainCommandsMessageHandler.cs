@@ -10,8 +10,9 @@ namespace TelegramBot.MessageHandler
       IShowUserInfoMessageHandler showUserInfo,
       Func<MainCommandsMessageHandler, IAssignInstitutionMessageHandler> createAssignInstitutionMessageHandler,
       Func<MainCommandsMessageHandler, IRemoveInstitutionMessageHandler> createRemoveInstitutionMessageHandler,
-      IShowStatisticMessageHandler showStatistic) : base(
-      telegramBotClient)
+      IShowStatisticMessageHandler showStatistic,
+      ConversationManager conversationManager)
+      : base(telegramBotClient, conversationManager)
     {
       AddCommand("info", InformationCommand, showUserInfo.Show);
       AddCommand("status", StatusCommand, showStatistic.Show);

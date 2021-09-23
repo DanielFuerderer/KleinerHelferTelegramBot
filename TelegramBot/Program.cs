@@ -22,7 +22,7 @@ namespace TelegramBot
       var conversationManager = new ConversationManager(telegramBotClient, userRepository, communityRepository);
       var backupService = new BackupService(userRepository, communityRepository);
       var messageStatisticRepository = new MessageStatisticRepository(UserStatistics, userRepository);
-      var messageStatisticService = new MessageStatistic.MessageStatisticService(telegramBotClient, messageStatisticRepository);
+      var messageStatisticService = new MessageStatistic.MessageStatisticService(telegramBotClient, messageStatisticRepository, userRepository);
 
       telegramBotClient.OnUserJoinedGroup += (user, group) =>
       {
@@ -38,7 +38,10 @@ namespace TelegramBot
 
       telegramBotClient.OnPrivateMessage += (user, chat, message) => { conversationManager.Handle(message); };
 
-      Console.ReadLine();
+      while(true)
+      {
+        System.Threading.Thread.Sleep(1000);
+      }
     }
 
     private static string GetDisplayName(User user)

@@ -20,7 +20,7 @@ namespace TelegramBot
     private readonly Telegram.Bot.TelegramBotClient _telegramBotClient;
     private Message _lastMenuMessage;
     private Chat _lastMenuChat;
-    private Dictionary<(long, string), Action<Message>> _commands = new Dictionary<(long, string), Action<Message>>();
+    private Dictionary<(long, string), Func<Message, bool>> _commands = new Dictionary<(long, string), Func<Message, bool>>();
     private Action _lastMenu;
 
     public TelegramBotClient(string token)
@@ -85,7 +85,7 @@ namespace TelegramBot
         .Wait(1500);
     }
 
-    public void ShowMenu(Chat chat, string text, IEnumerable<(string, string, Action<Message>)> buttons)
+    public void ShowMenu(Chat chat, string text, IEnumerable<(string, string, Func<Message, bool>)> buttons)
     {
       if (_lastMenuMessage != null)
       {
@@ -119,12 +119,18 @@ namespace TelegramBot
       _lastMenu();
     }
 
-    private void RegisterCommands(Chat chat, string data, Action<Message> action)
+    private void RegisterCommands(Chat chat, string data, Func<Message, bool> action)
     {
-      _commands.Add((chat.Id, data), action);
+      var key = (chat.Id, data);
+      if (_commands.ContainsKey(key))
+      {
+        return;
+      }
+
+      _commands.Add(key, action);
     }
 
-    private InlineKeyboardButton Create((string text, string data, Action<Message>) button)
+    private InlineKeyboardButton Create((string text, string data, Func<Message, bool>) button)
     {
       return InlineKeyboardButton.WithCallbackData(text: button.text, button.data); //, button.data.ToLower());
     }
@@ -147,8 +153,10 @@ namespace TelegramBot
 
         if (_commands.TryGetValue((message.Chat.Id, e.Update.CallbackQuery.Data), out var action))
         {
-          action(message);
-          _lastMenu();
+          if (!action(message))
+          {
+            _lastMenu();
+          }
         }
         else
         {

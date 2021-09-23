@@ -22,7 +22,9 @@ namespace TelegramBot.MessageHandler
 
     public IMessageHandler Handle(Message message)
     {
-      var userInformation = _userRepository[message.From.Id.ToString()];
+      var userId = message.From.IsBot ? message.Chat.Id : message.From.Id;
+
+      var userInformation = _userRepository[userId.ToString()];
 
       var input = message.Text.Trim(' ');
 
@@ -59,7 +61,9 @@ namespace TelegramBot.MessageHandler
 
     private string[] GetCommands(Message message)
     {
-      var userInformation = _userRepository[message.From.Id.ToString()];
+      var userId = message.From.IsBot ? message.Chat.Id : message.From.Id;
+
+      var userInformation = _userRepository[userId.ToString()];
 
       return userInformation.AssociatedInstitutions.Select(ai => ai.Name).OrderBy(name => name).Concat(new[] { Cancel })
         .ToArray();

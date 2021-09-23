@@ -22,5 +22,12 @@ namespace TelegramBot.MessageHandler
 
       Handler = nextHandler.OnEnter(message);
     }
+
+    internal void Active(IMessageHandler messageHandler, Message message)
+    {
+      Handler = messageHandler;
+
+      Handler = Handler.OnEnter(message);
+    }
   }
 }

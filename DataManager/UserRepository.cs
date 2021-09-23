@@ -66,6 +66,13 @@ namespace Data
         .Select(kvp => kvp.Value);
     }
 
+    public IEnumerable<UserInformation> GetAssignedUsers()
+    {
+      return _userInformation
+        .Where(u => u.Value.Community != null)
+        .Select(u => u.Value);
+    }
+
     public IEnumerable<UserInformation> GetUsersFrom(Institution institution)
     {
       return _userInformation.Values.Where(ui => ui.AssociatedInstitutions.Contains(institution));

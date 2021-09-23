@@ -29,9 +29,7 @@ namespace TelegramBot.MessageHandler
 
     public void Show(Message message)
     {
-      var userId = message.From.IsBot
-        ? message.Chat.Id
-        : message.From.Id;
+      var userId = message.From.IsBot ? message.Chat.Id : message.From.Id;
 
       var userInformation = _userRepository[userId.ToString()];
 

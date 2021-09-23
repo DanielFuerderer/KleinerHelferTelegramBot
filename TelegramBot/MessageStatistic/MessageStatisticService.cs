@@ -1,4 +1,6 @@
 ﻿
+using Data;
+using Data.Data;
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
@@ -12,13 +14,34 @@ namespace TelegramBot.MessageStatistic
   {
     private readonly Dictionary<long, MessageStatisticData> _messageStatistics = new Dictionary<long, MessageStatisticData>();
     private readonly MessageStatisticRepository _messageStatisticRepository;
+    private readonly IUserRepository userRepository;
 
-    public MessageStatisticService(ITelegramBotClient telegramBotClient, MessageStatisticRepository messageStatisticRepository)
+    public MessageStatisticService(ITelegramBotClient telegramBotClient, MessageStatisticRepository messageStatisticRepository, IUserRepository userRepository)
     {
-      telegramBotClient.OnGroupMessage += (user, chat, message) => AnalyzeMessage(user.Id, chat.Id, message);
+      telegramBotClient.OnGroupMessage += (user, chat, message) =>
+      {
+        if (NewUser(user))
+        {
+          AddUser(user);
+        }
+
+        AnalyzeMessage(user.Id, chat.Id, message);
+      };
+
       _messageStatisticRepository = messageStatisticRepository;
+      this.userRepository = userRepository;
     }
 
+    private void AddUser(User user)
+    {
+      userRepository.AddUser(new UserInformation(user.Id.ToString(), user.FirstName));
+      userRepository.Save();
+    }
+
+    private bool NewUser(User user)
+    {
+      return !userRepository.Exists(user.Id.ToString());
+    }
 
     internal MessageStatisticService()
     {

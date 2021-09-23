@@ -16,10 +16,11 @@ namespace TelegramBot.Data
 
     public UserStatistic Get()
     {
-      var usersPerCommunity = _userRepository.UsersInformation.Where(ui => ui.Community != null)
-        .GroupBy(ui => ui.Community);
+      var assignedUsers = _userRepository.GetAssignedUsers().ToList();
 
-      var usersInstitutions = _userRepository.UsersInformation
+      var usersPerCommunity = assignedUsers.GroupBy(ui => ui.Community);
+
+      var usersInstitutions = assignedUsers
         .SelectMany(ui => ui.AssociatedInstitutions.Select(ai => (ai, ui))).ToArray();
 
       var usersPerInstitution = usersInstitutions.GroupBy(ui => ui.ai, ui => ui.ui);
@@ -49,7 +50,7 @@ namespace TelegramBot.Data
               userPerCommunity.ToList()));
       }
 
-      return new UserStatistic(_userRepository.UsersInformation.Count(), institutionPerCommunities);
+      return new UserStatistic(assignedUsers.Count, institutionPerCommunities);
     }
   }
 }

@@ -28,8 +28,10 @@ namespace TelegramBot.MessageHandler
 
     public IMessageHandler OnEnter(Message message)
     {
+      var userId = message.From.IsBot ? message.Chat.Id : message.From.Id;
+
       var institutions = _communityRepository
-        .GetInstitutions(_userRepository[message.From.Id.ToString()].Community.ZipCode).OrderBy(i => i.Name).ToArray();
+        .GetInstitutions(_userRepository[userId.ToString()].Community.ZipCode).OrderBy(i => i.Name).ToArray();
 
       string text;
       if (institutions.Length == 0)
@@ -94,7 +96,7 @@ Ist die gewünschte Einrichtung nicht aufgelistet, kannst du sie durch freie Ein
         _communityRepository,
         _userRepository,
         _mainMenuMessageHandler,
-        institution => AssignInstitution(message.From.Id, message.Chat, institution),
+        institution => AssignInstitution(userId, message.Chat, institution),
         () => OnAbort(message.Chat));
     }
 
