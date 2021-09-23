@@ -25,7 +25,7 @@ namespace TelegramBot
     {
       // arrange
       var mockTelegramBotClient = new Moq.Mock<ITelegramBotClient>();
-      var messageStatisticService = new MessageStatisticService(mockTelegramBotClient.Object,);
+      var messageStatisticService = new MessageStatisticService(mockTelegramBotClient.Object, null);
 
       var userId = 1;
       var chatId = 2;

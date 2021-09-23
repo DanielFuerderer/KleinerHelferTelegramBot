@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
@@ -17,5 +18,7 @@ namespace TelegramBot
     void Write(Chat chat, string text);
     void Write(Chat chat, string text, params string[] replyOptions);
     void Write(Chat chat, string text, ParseMode parseMode = default, params string[] replyOptions);
+
+    void ShowMenu(Chat chat, string text, IEnumerable<(string, string, Action<Message>)> buttons);
   }
 }

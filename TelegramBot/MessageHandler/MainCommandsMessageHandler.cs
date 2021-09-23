@@ -1,20 +1,22 @@
 ﻿using System;
+using Microsoft.VisualBasic;
 
 namespace TelegramBot.MessageHandler
 {
   internal class MainCommandsMessageHandler : CommandsMessageHandler
   {
-    public MainCommandsMessageHandler(ITelegramBotClient telegramBotClient,
-      Func<MainCommandsMessageHandler, IShowUserInfoMessageHandler> createShowUserInfoMessageHandler,
+    public MainCommandsMessageHandler(
+      ITelegramBotClient telegramBotClient,
+      IShowUserInfoMessageHandler showUserInfo,
       Func<MainCommandsMessageHandler, IAssignInstitutionMessageHandler> createAssignInstitutionMessageHandler,
       Func<MainCommandsMessageHandler, IRemoveInstitutionMessageHandler> createRemoveInstitutionMessageHandler,
-      Func<MainCommandsMessageHandler, IShowStatisticMessageHandler> createShowStatisticMessageHandler) : base(
+      IShowStatisticMessageHandler showStatistic) : base(
       telegramBotClient)
     {
-      MessageHandlers.Add(InformationCommand, createShowUserInfoMessageHandler(this));
-      MessageHandlers.Add(AssignInstitutionCommand, createAssignInstitutionMessageHandler.Invoke(this));
-      MessageHandlers.Add(RemoveInstitutionCommand, createRemoveInstitutionMessageHandler.Invoke(this));
-      MessageHandlers.Add(StatusCommand, createShowStatisticMessageHandler.Invoke(this));
+      AddCommand("info", InformationCommand, showUserInfo.Show);
+      AddCommand("status", StatusCommand, showStatistic.Show);
+      AddCommand("addinstitution", AssignInstitutionCommand, createAssignInstitutionMessageHandler(this));
+      AddCommand("removeinstitution", RemoveInstitutionCommand, createRemoveInstitutionMessageHandler(this));
     }
 
     public static string InformationCommand => "Meine Informationen";

@@ -7,28 +7,17 @@ namespace TelegramBot.MessageHandler
 {
   internal class ShowStatisticMessageHandler : IShowStatisticMessageHandler
   {
-    private readonly MainCommandsMessageHandler _mainMenuMessageHandler;
-
     private readonly UserStatisticService _statisticService;
 
     private readonly ITelegramBotClient _telegramBotClient;
 
-    public ShowStatisticMessageHandler(ITelegramBotClient telegramBotClient, UserStatisticService statisticService,
-      MainCommandsMessageHandler mainMenuMessageHandler)
+    public ShowStatisticMessageHandler(ITelegramBotClient telegramBotClient, UserStatisticService statisticService)
     {
       _telegramBotClient = telegramBotClient;
       _statisticService = statisticService;
-      _mainMenuMessageHandler = mainMenuMessageHandler;
     }
 
-    public string CommandName => "Status";
-
-    public IMessageHandler Handle(Message message)
-    {
-      return this;
-    }
-
-    public IMessageHandler OnEnter(Message message)
+    public void Show(Message message)
     {
       var statistic = _statisticService.Get();
 
@@ -49,21 +38,24 @@ namespace TelegramBot.MessageHandler
 
       _telegramBotClient.Write(message.Chat, statisticBuilder.ToString());
 
-      return _mainMenuMessageHandler;
+      //return _mainMenuMessageHandler;
     }
 
-    public IMessageHandler GetHandler(Message message)
-    {
-      return this;
-    }
+    //public IMessageHandler GetHandler(Message message)
+    //{
+    //  return this;
+    //}
 
-    public bool Match(Message message)
-    {
-      var input = message.Text.Trim(' ');
+    //public bool Match(Message message)
+    //{
+    //  var input = message.Text.Trim(' ');
 
-      return string.Equals(input, CommandName, StringComparison.CurrentCultureIgnoreCase);
-    }
+    //  return string.Equals(input, CommandName, StringComparison.CurrentCultureIgnoreCase);
+    //}
   }
 
-  internal interface IShowStatisticMessageHandler : IMessageHandler { }
+  internal interface IShowStatisticMessageHandler
+  {
+    public void Show(Message message);
+  }
 }

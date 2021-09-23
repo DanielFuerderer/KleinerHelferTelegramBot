@@ -6,30 +6,34 @@ using Telegram.Bot.Types.Enums;
 
 namespace TelegramBot.MessageHandler
 {
-  internal interface IShowUserInfoMessageHandler : IMessageHandler { }
+  internal interface IShowUserInfoMessageHandler //: IMessageHandler { }
+  {
+    public void Show(Message message);
+  }
 
   internal class ShowUserInfoMessageHandler : IShowUserInfoMessageHandler
   {
-    private readonly IMessageHandler _messageHandler;
     private readonly ITelegramBotClient _telegramBotClient;
     private readonly IUserRepository _userRepository;
 
-    public ShowUserInfoMessageHandler(ITelegramBotClient telegramBotClient, IMessageHandler messageHandler,
-      IUserRepository userRepository)
+    public ShowUserInfoMessageHandler(ITelegramBotClient telegramBotClient, IUserRepository userRepository)
     {
       _telegramBotClient = telegramBotClient;
-      _messageHandler = messageHandler;
       _userRepository = userRepository;
     }
 
-    public IMessageHandler Handle(Message message)
-    {
-      return this;
-    }
+    //public IMessageHandler Handle(Message message)
+    //{
+    //  return this;
+    //}
 
-    public IMessageHandler OnEnter(Message message)
+    public void Show(Message message)
     {
-      var userInformation = _userRepository[message.From.Id.ToString()];
+      var userId = message.From.IsBot
+        ? message.Chat.Id
+        : message.From.Id;
+
+      var userInformation = _userRepository[userId.ToString()];
 
       var usersOfCommunity = _userRepository.GetUsersFrom(userInformation.Community);
 
@@ -47,12 +51,12 @@ namespace TelegramBot.MessageHandler
 Einrichtungen:
 {associatedInstitutions} ", ParseMode.Markdown);
 
-      return _messageHandler;
+      //return _messageHandler;
     }
 
-    public IMessageHandler GetHandler(Message message)
-    {
-      return this;
-    }
+    //public IMessageHandler GetHandler(Message message)
+    //{
+    //  return this;
+    //}
   }
 }

@@ -26,10 +26,10 @@ namespace TelegramBot.MessageHandler
       _communityRepository = communityRepository;
 
       _mainMenuMessageHandler = new MainCommandsMessageHandler(_telegramBotClient,
-        mmh => new ShowUserInfoMessageHandler(_telegramBotClient, mmh, _userRepository),
+        new ShowUserInfoMessageHandler(_telegramBotClient, _userRepository),
         mmh => new AssignInstitutionMessageHandler(_communityRepository, _userRepository, _telegramBotClient, mmh),
         mmh => new RemoveInstitutionMessageHandler(_userRepository, _telegramBotClient, mmh),
-        mmh => new ShowStatisticMessageHandler(_telegramBotClient, new UserStatisticService(_userRepository), mmh));
+        new ShowStatisticMessageHandler(_telegramBotClient, new UserStatisticService(_userRepository)));
     }
 
     public ConversationInfo Get(User user)

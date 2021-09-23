@@ -47,10 +47,47 @@ Bitte schreibe mir den Namen deiner Einrichtung und ich füge sie zu deiner Geme
 Ist die gewünschte Einrichtung nicht aufgelistet, kannst du sie durch freie Eingabe hinzufügen.";
       }
 
-      _telegramBotClient.Write(
-        message.Chat,
-        text,
-        institutions.Select(i => i.Name).Concat(new[] { Cancel }).ToArray());
+      //if (institutions.Length > 8)
+      //{
+      //  var normalizedInstitutionGroups =
+      //    TextHelper.GroupStrings(institutions.Select(i => Normalize(i.Name)).ToArray(), 8);
+
+      //  var index = 0;
+
+      //  _telegramBotClient.ShowMenu(
+      //    message.Chat,
+      //    text,
+      //    normalizedInstitutionGroups
+      //      .Select(i => (GetDisplay(i), index++.ToString()))
+      //      .Concat(new[] { (Cancel, Cancel) }).ToArray());
+
+      //  return new GetInstitutionFromListMessageHandler(
+      //    _telegramBotClient,
+      //    _communityRepository,
+      //    _userRepository,
+      //    _mainMenuMessageHandler,
+      //    institution => AssignInstitution(message.From.Id, message.Chat, institution),
+      //    () => OnAbort(message.Chat),
+      //    normalizedInstitutionGroups);
+      //}
+      //else
+      //{
+      if (institutions.Length < 8)
+      {
+        _telegramBotClient.Write(
+          message.Chat,
+          text,
+          institutions
+            .Select(i => i.Name)
+            .Concat(new[] { Cancel }).ToArray());
+      }
+      else
+      {
+        _telegramBotClient.Write(
+          message.Chat,
+          text,
+            new[] { Cancel }.ToArray());
+      }
 
       return new GetInstitutionMessageHandler(
         _telegramBotClient,
@@ -59,6 +96,24 @@ Ist die gewünschte Einrichtung nicht aufgelistet, kannst du sie durch freie Ein
         _mainMenuMessageHandler,
         institution => AssignInstitution(message.From.Id, message.Chat, institution),
         () => OnAbort(message.Chat));
+    }
+
+    private string GetDisplay(string[] strings)
+    {
+      return $"{strings[0]} .. {strings.Last()}";
+    }
+
+    public static string Normalize(string name)
+    {
+      return name
+        .Replace("-Kindergarten", "")
+        .Replace(" Kindergarten", "")
+        .Replace("-Kinderhaus", "")
+        .Replace(" Kinderhaus", "")
+        .Replace("Kindergarten-", "")
+        .Replace("Kindergarten ", "")
+        .Replace("Kinderhaus-", "")
+        .Replace("Kinderhaus ", "");
     }
 
     private IMessageHandler OnAbort(Chat chat)
