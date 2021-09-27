@@ -137,36 +137,44 @@ namespace TelegramBot
 
     private void TelegramBotClientOnUpdate(object sender, UpdateEventArgs e)
     {
-      Console.WriteLine($"============  OnUpdate [{e.Update.Id}] =============");
-      ShowProperties(e.Update, nameof(e.Update.Id), nameof(e.Update.Type));
-
-      Show("Message", e.Update.Message);
-      Show("ChannelPost", e.Update.ChannelPost);
-      Show("ChatMember", e.Update.ChatMember);
-      Show("MyChatMember", e.Update.MyChatMember);
-
-      Console.WriteLine($"===========  OnUpdateEnd [{e.Update.Id}] ===========");
-
-      if (e.Update.Type == UpdateType.CallbackQuery)
+      try
       {
-        var message = e.Update.CallbackQuery.Message;
+        Console.WriteLine($"============  OnUpdate [{e.Update.Id}] =============");
+        ShowProperties(e.Update, nameof(e.Update.Id), nameof(e.Update.Type));
 
-        if (_commands.TryGetValue((message.Chat.Id, e.Update.CallbackQuery.Data), out var action))
+        Show("Message", e.Update.Message);
+        Show("ChannelPost", e.Update.ChannelPost);
+        Show("ChatMember", e.Update.ChatMember);
+        Show("MyChatMember", e.Update.MyChatMember);
+
+        Console.WriteLine($"===========  OnUpdateEnd [{e.Update.Id}] ===========");
+
+        if (e.Update.Type == UpdateType.CallbackQuery)
         {
-          if (!action(message))
+          var message = e.Update.CallbackQuery.Message;
+
+          if (_commands.TryGetValue((message.Chat.Id, e.Update.CallbackQuery.Data), out var action))
           {
-            _lastMenu();
+            if (!action(message))
+            {
+              _lastMenu();
+            }
+          }
+          else
+          {
+            foreach (var key in _commands
+              .Keys
+              .Where(k => k.Item1 == message.Chat.Id).ToList())
+            {
+              _commands.Remove(key);
+            }
           }
         }
-        else
-        {
-          foreach (var key in _commands
-            .Keys
-            .Where(k => k.Item1 == message.Chat.Id).ToList())
-          {
-            _commands.Remove(key);
-          }
-        }
+      }
+      catch (Exception exception)
+      {
+        Console.WriteLine($"Exception occurred: {exception.Message}");
+        Console.WriteLine(exception.StackTrace);
       }
     }
 
@@ -281,29 +289,39 @@ namespace TelegramBot
 
     private void TelegramBotClientOnMessage(object sender, MessageEventArgs e)
     {
-      Console.WriteLine($"============  OnMessage [{e.Message.MessageId}] ============");
-
-      Show("OnMessage", e.Message);
-
-      var chat = e.Message.Chat;
-
-      if (e.Message.Type == MessageType.ChatMemberLeft)
+      try
       {
-        OnMemberLeftChat(e.Message.LeftChatMember, chat);
-      }
-      else if (e.Message.Type == MessageType.ChatMembersAdded)
-      {
-        foreach (var newChatMember in e.Message.NewChatMembers)
+
+
+        Console.WriteLine($"============  OnMessage [{e.Message.MessageId}] ============");
+
+        Show("OnMessage", e.Message);
+
+        var chat = e.Message.Chat;
+
+        if (e.Message.Type == MessageType.ChatMemberLeft)
         {
-          OnMemberJoinedChat(newChatMember, chat);
+          OnMemberLeftChat(e.Message.LeftChatMember, chat);
         }
-      }
-      else if (e.Message.Type == MessageType.Text)
-      {
-        OnTextMessage(e.Message);
-      }
+        else if (e.Message.Type == MessageType.ChatMembersAdded)
+        {
+          foreach (var newChatMember in e.Message.NewChatMembers)
+          {
+            OnMemberJoinedChat(newChatMember, chat);
+          }
+        }
+        else if (e.Message.Type == MessageType.Text)
+        {
+          OnTextMessage(e.Message);
+        }
 
-      Console.WriteLine($"==========  OnMessageEnd [{e.Message.MessageId}] ===========");
+        Console.WriteLine($"==========  OnMessageEnd [{e.Message.MessageId}] ===========");
+      }
+      catch (Exception exception)
+      {
+        Console.WriteLine($"Exception occurred: {exception.Message}");
+        Console.WriteLine(exception.StackTrace);
+      }
     }
 
     private void OnTextMessage(Message message)

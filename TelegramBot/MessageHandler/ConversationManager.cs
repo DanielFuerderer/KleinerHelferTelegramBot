@@ -43,7 +43,8 @@ namespace TelegramBot.MessageHandler
 
       IMessageHandler handler;
 
-      if (_userRepository.Exists(user.Id.ToString()))
+      if (_userRepository.Exists(user.Id.ToString()) && 
+        _userRepository[user.Id.ToString()].Community != null)
       {
         handler = _mainMenuMessageHandler;
       }

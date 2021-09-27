@@ -62,7 +62,8 @@ namespace Data
 
     public IEnumerable<UserInformation> GetUsersFrom(Community community)
     {
-      return _userInformation.Where(ui => Equals(ui.Value.Community?.ZipCode, community.ZipCode))
+      return _userInformation
+        .Where(ui => Equals(ui.Value.Community?.ZipCode, community.ZipCode))
         .Select(kvp => kvp.Value);
     }
 

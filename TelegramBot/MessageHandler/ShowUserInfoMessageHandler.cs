@@ -22,16 +22,21 @@ namespace TelegramBot.MessageHandler
       _userRepository = userRepository;
     }
 
-    //public IMessageHandler Handle(Message message)
-    //{
-    //  return this;
-    //}
-
     public void Show(Message message)
     {
       var userId = message.From.IsBot ? message.Chat.Id : message.From.Id;
 
       var userInformation = _userRepository[userId.ToString()];
+
+      if(userInformation.Community == null)
+      {
+        _telegramBotClient.Write(
+          message.Chat,
+          @$"Hopla, du bist noch keiner Gemeinde zugewiesen. Schreib @DanielFuerderer eine Nachricht und ich schaue mir das Problem an.",
+          ParseMode.Markdown);
+
+        return;
+      }
 
       var usersOfCommunity = _userRepository.GetUsersFrom(userInformation.Community);
 
