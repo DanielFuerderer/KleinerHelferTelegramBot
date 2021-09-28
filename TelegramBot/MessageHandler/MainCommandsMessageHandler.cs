@@ -1,7 +1,6 @@
 ﻿using System;
-using Microsoft.VisualBasic;
 
-namespace TelegramBot.MessageHandler
+namespace KleinerHelferBot.MessageHandler
 {
   internal class MainCommandsMessageHandler : CommandsMessageHandler
   {

@@ -4,20 +4,20 @@ using Data;
 using Data.Data;
 using Telegram.Bot.Types;
 
-namespace TelegramBot.MessageHandler
+namespace KleinerHelferBot.MessageHandler
 {
 
   internal abstract class CreateCommunityMessageHandler : IMessageHandler
   {
-    private readonly ICommunityRepository communityRepository;
-    private readonly Func<Community, IMessageHandler> onCreated;
+    private readonly ICommunityRepository _communityRepository;
+    private readonly Func<Community, IMessageHandler> _onCreated;
 
     public CreateCommunityMessageHandler(
       ICommunityRepository communityRepository,
       Func<Community, IMessageHandler> onCreated)
     {
-      this.communityRepository = communityRepository;
-      this.onCreated = onCreated;
+      this._communityRepository = communityRepository;
+      this._onCreated = onCreated;
     }
 
     public IMessageHandler Handle(Message message)
@@ -28,10 +28,10 @@ namespace TelegramBot.MessageHandler
         return this;
       }
 
-      communityRepository.AddCommunity(community, null);
-      communityRepository.Save();
+      _communityRepository.AddCommunity(community, null);
+      _communityRepository.Save();
 
-      return onCreated?.Invoke(community);
+      return _onCreated?.Invoke(community);
     }
 
     protected abstract Community GetCommunity(Message message);
@@ -44,7 +44,7 @@ namespace TelegramBot.MessageHandler
 
   internal class CreateCommunityWithZipCodeMessageHandler : CreateCommunityMessageHandler
   {
-    private readonly int zipCode;
+    private readonly int _zipCode;
     private readonly ITelegramBotClient _telegramBotClient;
 
     public CreateCommunityWithZipCodeMessageHandler(
@@ -54,7 +54,7 @@ namespace TelegramBot.MessageHandler
       Func<Community, IMessageHandler> onCreated)
       : base(communityRepository, onCreated)
     {
-      this.zipCode = zipCode;
+      this._zipCode = zipCode;
       this._telegramBotClient = telegramBotClient;
     }
 
@@ -67,15 +67,15 @@ namespace TelegramBot.MessageHandler
         return null;
       }
 
-      return new Community(input, this.zipCode);
+      return new Community(input, this._zipCode);
     }
   }
 
   internal class CreateCommunityWithNameMessageHandler : CreateCommunityMessageHandler
   {
-    private readonly ITelegramBotClient telegramBotClient;
-    private readonly ICommunityRepository communityRepository;
-    private readonly string name;
+    private readonly ITelegramBotClient _telegramBotClient;
+    private readonly ICommunityRepository _communityRepository;
+    private readonly string _name;
 
     public CreateCommunityWithNameMessageHandler(
       ITelegramBotClient telegramBotClient,
@@ -83,9 +83,9 @@ namespace TelegramBot.MessageHandler
       string name,
       Func<Community, IMessageHandler> onCreated) : base(communityRepository, onCreated)
     {
-      this.telegramBotClient = telegramBotClient;
-      this.communityRepository = communityRepository;
-      this.name = name;
+      this._telegramBotClient = telegramBotClient;
+      this._communityRepository = communityRepository;
+      this._name = name;
     }
 
     protected override Community GetCommunity(Message message)
@@ -96,20 +96,20 @@ namespace TelegramBot.MessageHandler
       {
         if (!Regex.IsMatch(input, "^[0-9]{5}$"))
         {
-          telegramBotClient.Write(message.Chat,
+          _telegramBotClient.Write(message.Chat,
             "Ungültige Postleitzahl. Die Postleitzahl muss genau aus 5 Zahlen bestehen.");
 
           return null;
         }
 
-        if (communityRepository.TryGetCommunity(zipCode, out var community))
+        if (_communityRepository.TryGetCommunity(zipCode, out var community))
         {
-          telegramBotClient.Write(message.Chat, $@"Gemeinde {community.Name} hat bereits die Postleitzahl und wird verwendet.");
+          _telegramBotClient.Write(message.Chat, $@"Gemeinde {community.Name} hat bereits die Postleitzahl und wird verwendet.");
 
           return community;
         }
 
-        return new Community(name, zipCode);
+        return new Community(_name, zipCode);
       }
 
       return null;

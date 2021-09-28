@@ -1,40 +1,57 @@
-﻿using NUnit.Framework;
+﻿using Data;
+using Data.Data;
+using KleinerHelferBot;
+using KleinerHelferBot.MessageStatistic;
+using Moq;
+using NUnit.Framework;
 using Telegram.Bot.Types;
-using TelegramBot.MessageStatistic;
 
-namespace TelegramBot
+namespace TelegramBotTests.MessageStatistic
 {
   [TestFixture]
   public class MessageStatisticServiceTests
   {
-    private Message _textMessage;
-
     [SetUp]
     public void SetUp()
     {
       _textMessage = new Message { Text = "simple" };
+
+      _mockTelegramBotClient = new Mock<ITelegramBotClient>();
+      _mockUserRepository = new Mock<IUserRepository>();
+      _mockMessageStatisticRepository = new Mock<IMessageStatisticRepository>();
     }
+
+    private Message _textMessage;
 
     internal MessageStatisticService Create()
     {
-      return new MessageStatisticService();
+      return new MessageStatisticService(
+        _mockTelegramBotClient.Object,
+        _mockMessageStatisticRepository.Object,
+        _mockUserRepository.Object);
     }
+
+    private Mock<ITelegramBotClient> _mockTelegramBotClient;
+    private Mock<IMessageStatisticRepository> _mockMessageStatisticRepository;
+    private Mock<IUserRepository> _mockUserRepository;
 
     [Test]
     public void OnGroupMessage_FirstMessageOfUserTextMessage_TotalIsOne()
     {
       // arrange
-      var mockTelegramBotClient = new Moq.Mock<ITelegramBotClient>();
-      var messageStatisticService = new MessageStatisticService(mockTelegramBotClient.Object, null);
+      var messageStatisticService = Create();
 
       var userId = 1;
       var chatId = 2;
 
       // act
-      mockTelegramBotClient.Raise(m => m.OnGroupMessage += null, new User { Id = userId }, new Chat { Id = chatId }, _textMessage);
+      _mockTelegramBotClient.Raise(m => m.OnGroupMessage += null,
+        new User { Id = userId },
+        new Chat { Id = chatId },
+        _textMessage);
 
       // assert
-      Assert.AreEqual(1, messageStatisticService.GetStatistic(userId, chatId).Total);
+      Assert.AreEqual(1, messageStatisticService.GetStatistic(userId.ToString(), chatId).Total);
     }
 
     [Test]
@@ -46,7 +63,7 @@ namespace TelegramBot
       // act
 
       // assert
-      var statistic = messageStatisticService.GetStatistic(1, 2);
+      var statistic = messageStatisticService.GetStatistic(1.ToString(), 2);
 
       Assert.Zero(statistic.Total);
       Assert.Zero(statistic.Forwards);
@@ -59,14 +76,14 @@ namespace TelegramBot
       // arrange
       var messageStatisticService = Create();
 
-      int userId = 1;
-      int chatId = 2;
+      var userInformation = new UserInformation("1", "");
+      var chatId = 2;
 
       // act
-      messageStatisticService.AnalyzeMessage(userId, chatId, new Message { Text = "simple" });
+      messageStatisticService.AnalyzeMessage(userInformation, chatId, new Message { Text = "simple" });
 
       // assert
-      Assert.AreEqual(1, messageStatisticService.GetStatistic(userId, chatId).Total);
+      Assert.AreEqual(1, messageStatisticService.GetStatistic(userInformation.Id, chatId).Total);
     }
   }
 }

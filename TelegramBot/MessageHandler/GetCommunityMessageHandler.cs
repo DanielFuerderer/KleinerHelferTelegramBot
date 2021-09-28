@@ -5,13 +5,13 @@ using Data;
 using Data.Data;
 using Telegram.Bot.Types;
 
-namespace TelegramBot.MessageHandler
+namespace KleinerHelferBot.MessageHandler
 {
   class GetCommunityMessageHandler : IMessageHandler
   {
     private readonly ITelegramBotClient _telegramBotClient;
     private readonly ICommunityRepository _communityRepository;
-    private readonly IMessageHandler messageHandler;
+    private readonly IMessageHandler _messageHandler;
     private readonly Func<Community, IMessageHandler> _onReceivedCommunity;
 
     public GetCommunityMessageHandler(
@@ -22,7 +22,7 @@ namespace TelegramBot.MessageHandler
     {
       _telegramBotClient = telegramBotClient;
       this._communityRepository = communityRepository;
-      this.messageHandler = messageHandler;
+      this._messageHandler = messageHandler;
       _onReceivedCommunity = onReceivedCommunity;
     }
 

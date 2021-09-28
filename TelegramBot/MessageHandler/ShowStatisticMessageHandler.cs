@@ -1,9 +1,8 @@
-﻿using System;
-using System.Text;
+﻿using System.Text;
+using KleinerHelferBot.Data;
 using Telegram.Bot.Types;
-using TelegramBot.Data;
 
-namespace TelegramBot.MessageHandler
+namespace KleinerHelferBot.MessageHandler
 {
   internal class ShowStatisticMessageHandler : IShowStatisticMessageHandler
   {

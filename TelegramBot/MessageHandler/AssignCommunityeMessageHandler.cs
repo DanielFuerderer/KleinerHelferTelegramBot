@@ -4,7 +4,7 @@ using Data;
 using Data.Data;
 using Telegram.Bot.Types;
 
-namespace TelegramBot.MessageHandler
+namespace KleinerHelferBot.MessageHandler
 {
   internal class AssignCommunityMessageHandler : IMessageHandler
   {
@@ -12,10 +12,6 @@ namespace TelegramBot.MessageHandler
     private readonly MainCommandsMessageHandler _mainMenuMessageHandler;
     private readonly ITelegramBotClient _telegramBotClient;
     private readonly IUserRepository _userRepository;
-    private string _enteredCommunityName;
-
-    private int? _enteredZipCode;
-    private Community _selectedCommunity;
 
     public AssignCommunityMessageHandler(
       ITelegramBotClient telegramBotClient,

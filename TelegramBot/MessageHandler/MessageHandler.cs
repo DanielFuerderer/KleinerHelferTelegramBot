@@ -1,6 +1,6 @@
 ﻿using Telegram.Bot.Types;
 
-namespace TelegramBot.MessageHandler
+namespace KleinerHelferBot.MessageHandler
 {
   internal abstract class MessageHandler : IMessageHandler
   {

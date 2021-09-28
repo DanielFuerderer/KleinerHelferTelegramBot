@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
 using Telegram.Bot.Args;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -9,7 +9,7 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 #pragma warning disable 618
 
-namespace TelegramBot
+namespace KleinerHelferBot
 {
   internal class TelegramBotClient : ITelegramBotClient
   {
@@ -18,8 +18,7 @@ namespace TelegramBot
     public delegate void UserGroupAction(User user, Chat chat);
 
     private readonly Telegram.Bot.TelegramBotClient _telegramBotClient;
-    private Message _lastMenuMessage;
-    private Chat _lastMenuChat;
+    private Dictionary<string, Message> _lastMenuMessage = new Dictionary<string, Message>();
     private Dictionary<(long, string), Func<Message, bool>> _commands = new Dictionary<(long, string), Func<Message, bool>>();
     private Action _lastMenu;
 
@@ -55,14 +54,26 @@ namespace TelegramBot
 
     public void Write(Chat chat, string text)
     {
-      if (_lastMenuMessage != null)
-      {
-        _telegramBotClient.DeleteMessageAsync(_lastMenuChat.Id, _lastMenuMessage.MessageId).Wait(1000);
-        _lastMenuMessage = null;
-        _lastMenuChat = null;
-      }
+      RemoveObsoleteInlineMenu(chat.Id.ToString());
 
       _telegramBotClient.SendTextMessageAsync(chat.Id, text).Wait(1500);
+    }
+
+    private void RemoveObsoleteInlineMenu(string chatId)
+    {
+      try
+      {
+        if (_lastMenuMessage.TryGetValue(chatId, out var message))
+        {
+          _lastMenuMessage.Remove(chatId);
+
+          _telegramBotClient.DeleteMessageAsync(chatId, message.MessageId).Wait(1000);
+        }
+      }
+      catch
+      {
+      }
+
     }
 
     public void Write(Chat chat, string text, params string[] replyOptions)
@@ -72,12 +83,7 @@ namespace TelegramBot
 
     public void Write(Chat chat, string text, ParseMode parseMode = default, params string[] replyOptions)
     {
-      if (_lastMenuMessage != null)
-      {
-        _telegramBotClient.DeleteMessageAsync(_lastMenuChat.Id, _lastMenuMessage.MessageId).Wait(1000);
-        _lastMenuMessage = null;
-        _lastMenuChat = null;
-      }
+      RemoveObsoleteInlineMenu(chat.Id.ToString());
 
       _telegramBotClient.SendTextMessageAsync(chat.Id, text, parseMode,
         replyMarkup: new ReplyKeyboardMarkup(replyOptions.Select(t => new KeyboardButton(t)))
@@ -87,12 +93,7 @@ namespace TelegramBot
 
     public void ShowMenu(Chat chat, string text, IEnumerable<(string, string, Func<Message, bool>)> buttons)
     {
-      if (_lastMenuMessage != null)
-      {
-        _telegramBotClient.DeleteMessageAsync(_lastMenuChat.Id, _lastMenuMessage.MessageId).Wait(1000);
-        _lastMenuMessage = null;
-        _lastMenuChat = null;
-      }
+      RemoveObsoleteInlineMenu(chat.Id.ToString());
 
       var menu = buttons
         .Select(Create)
@@ -108,12 +109,11 @@ namespace TelegramBot
 
       _lastMenu = () =>
       {
-        _lastMenuMessage = _telegramBotClient.SendTextMessageAsync(
+        _lastMenuMessage[chat.Id.ToString()] = _telegramBotClient.SendTextMessageAsync(
             chat.Id,
             text,
             replyMarkup: inlineKeyboard)
           .Result;
-        _lastMenuChat = chat;
       };
 
       _lastMenu();
@@ -291,8 +291,6 @@ namespace TelegramBot
     {
       try
       {
-
-
         Console.WriteLine($"============  OnMessage [{e.Message.MessageId}] ============");
 
         Show("OnMessage", e.Message);

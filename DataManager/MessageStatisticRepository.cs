@@ -3,22 +3,18 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.Json;
 using Data.Data;
 
 namespace Data
 {
-  public class MessageStatisticRepository
+  public class MessageStatisticRepository : IMessageStatisticRepository
   {
     private readonly Dictionary<UserInformation, HashSet<DayGroupMessageStatistic>> _userMessageStatistics = new Dictionary<UserInformation, HashSet<DayGroupMessageStatistic>>();
-    private readonly UserRepository _userRepository;
 
     public MessageStatisticRepository(string fileName, UserRepository userRepository)
     {
       FileName = fileName;
-
-      _userRepository = userRepository;
 
       string serializedData = null;
 
@@ -108,10 +104,8 @@ namespace Data
     public string FileName { get; private set; }
     private const string PersistenceDateTimeFormat = @"yyyyMMdd";
 
-    public void Update(string userId, DayGroupMessageStatistic dayGroupMessageStatistic)
+    public void Update(UserInformation user, DayGroupMessageStatistic dayGroupMessageStatistic)
     {
-      var user = _userRepository[userId];
-
       if (!_userMessageStatistics.TryGetValue(user, out var userDayGroupMessageStatistic))
       {
         _userMessageStatistics.Add(user, userDayGroupMessageStatistic = new HashSet<DayGroupMessageStatistic>());
@@ -120,5 +114,12 @@ namespace Data
       userDayGroupMessageStatistic.Remove(dayGroupMessageStatistic);
       userDayGroupMessageStatistic.Add(dayGroupMessageStatistic);
     }
+  }
+
+  public interface IMessageStatisticRepository
+  {
+    void Update(UserInformation user, DayGroupMessageStatistic messageStatistic);
+
+    void Save();
   }
 }

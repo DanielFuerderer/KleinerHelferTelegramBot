@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
-namespace TelegramBot
+namespace KleinerHelferBot
 {
   internal interface ITelegramBotClient
   {

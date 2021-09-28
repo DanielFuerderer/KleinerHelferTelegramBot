@@ -2,10 +2,10 @@
 using System.IO;
 using System.Text;
 using Data;
+using KleinerHelferBot.MessageHandler;
 using Telegram.Bot.Types;
-using TelegramBot.MessageHandler;
 
-namespace TelegramBot
+namespace KleinerHelferBot
 {
   internal class Program
   {

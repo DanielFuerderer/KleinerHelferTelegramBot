@@ -3,7 +3,7 @@ using System.Linq;
 using Data;
 using Telegram.Bot.Types;
 
-namespace TelegramBot.MessageHandler
+namespace KleinerHelferBot.MessageHandler
 {
   internal class RemoveInstitutionMessageHandler : IRemoveInstitutionMessageHandler
   {

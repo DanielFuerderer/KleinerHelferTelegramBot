@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace TelegramBot
+namespace KleinerHelferBot
 {
   public static class TextHelper
   {

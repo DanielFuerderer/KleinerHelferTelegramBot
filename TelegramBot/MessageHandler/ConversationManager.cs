@@ -2,10 +2,10 @@
 using System.Diagnostics.CodeAnalysis;
 using Data;
 using Data.Data;
+using KleinerHelferBot.Data;
 using Telegram.Bot.Types;
-using TelegramBot.Data;
 
-namespace TelegramBot.MessageHandler
+namespace KleinerHelferBot.MessageHandler
 {
   internal class ConversationManager
   {
@@ -41,28 +41,42 @@ namespace TelegramBot.MessageHandler
         return conversationInfo;
       }
 
-      IMessageHandler handler;
-
-      if (_userRepository.Exists(user.Id.ToString()) && 
-        _userRepository[user.Id.ToString()].Community != null)
-      {
-        handler = _mainMenuMessageHandler;
-      }
-      else
+      if (NewUser(user))
       {
         _userRepository.AddUser(new UserInformation(user.Id.ToString(), user.FirstName));
         _userRepository.Save();
-
-        handler = new WelcomeMessageHandler(_telegramBotClient,
-          new AssignCommunityMessageHandler(_telegramBotClient, _userRepository, _communityRepository,
-            _mainMenuMessageHandler));
       }
+
+      var handler = HasCommunityAssigned(user)
+        ? (IMessageHandler)_mainMenuMessageHandler
+        : CreateWelcomeMessageHandler();
 
       conversationInfo = new ConversationInfo(handler);
 
       _handlers.Add(user, conversationInfo);
 
       return conversationInfo;
+    }
+
+    private WelcomeMessageHandler CreateWelcomeMessageHandler()
+    {
+      return new WelcomeMessageHandler(
+        _telegramBotClient,
+        new AssignCommunityMessageHandler(
+          _telegramBotClient,
+          _userRepository,
+          _communityRepository,
+          _mainMenuMessageHandler));
+    }
+
+    private bool HasCommunityAssigned(User user)
+    {
+      return _userRepository[user.Id.ToString()].Community != null;
+    }
+
+    private bool NewUser(User user)
+    {
+      return !_userRepository.Exists(user.Id.ToString());
     }
 
     public void Handle(Message message)

@@ -3,31 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using Telegram.Bot.Types;
 
-namespace TelegramBot.MessageHandler
+namespace KleinerHelferBot.MessageHandler
 {
   internal class CommandsMessageHandler : IMessageHandler
   {
     private readonly ITelegramBotClient _telegramBotClient;
-    private readonly ConversationManager conversationManager;
-    public readonly MessageHandlerMapping MessageHandlers = new MessageHandlerMapping();
-    protected readonly Dictionary<string, Action<Message>> Actions = new Dictionary<string, Action<Message>>();
+    private readonly ConversationManager _conversationManager;
 
     public CommandsMessageHandler(ITelegramBotClient telegramBotClient, ConversationManager conversationManager)
     {
       _telegramBotClient = telegramBotClient;
-      this.conversationManager = conversationManager;
+      this._conversationManager = conversationManager;
     }
-
-    //public IMessageHandler Handle(Message message)
-    //{
-    //  var input = message.Text.Trim(' ').ToLower();
-    //  if (Commands.TryGetValue(input, out var command))
-    //  {
-    //    return command.Action(message);
-    //  }
-
-    //  return this;
-    //}
 
     public IMessageHandler Handle(Message message)
     {
@@ -60,7 +47,7 @@ namespace TelegramBot.MessageHandler
     {
       Commands.Add(command, new Command(text, command, m =>
       {
-        conversationManager.Activate(messageHandler, m);
+        _conversationManager.Activate(messageHandler, m);
 
         return true;
       }));

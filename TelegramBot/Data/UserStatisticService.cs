@@ -3,7 +3,7 @@ using System.Linq;
 using Data;
 using Data.Data;
 
-namespace TelegramBot.Data
+namespace KleinerHelferBot.Data
 {
   internal class UserStatisticService
   {

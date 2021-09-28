@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace TelegramBot.Data
+namespace KleinerHelferBot.Data
 {
   internal class UserStatistic
   {

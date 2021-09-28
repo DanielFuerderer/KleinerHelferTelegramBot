@@ -1,59 +1,66 @@
-﻿
-using Data;
-using Data.Data;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using Data;
+using Data.Data;
 using Telegram.Bot.Types;
 using MessageStatisticData = Data.Data.DayGroupMessageStatistic;
-using MessageStatisticRepository = Data.MessageStatisticRepository;
 
-namespace TelegramBot.MessageStatistic
+namespace KleinerHelferBot.MessageStatistic
 {
   internal class MessageStatisticService
   {
-    private readonly Dictionary<long, MessageStatisticData> _messageStatistics = new Dictionary<long, MessageStatisticData>();
-    private readonly MessageStatisticRepository _messageStatisticRepository;
-    private readonly IUserRepository userRepository;
+    private readonly Dictionary<string, MessageStatisticData> _messageStatistics = new Dictionary<string, MessageStatisticData>();
+    private readonly IMessageStatisticRepository _messageStatisticRepository;
+    private readonly IUserRepository _userRepository;
 
-    public MessageStatisticService(ITelegramBotClient telegramBotClient, MessageStatisticRepository messageStatisticRepository, IUserRepository userRepository)
+    public MessageStatisticService(ITelegramBotClient telegramBotClient, IMessageStatisticRepository messageStatisticRepository, IUserRepository userRepository)
     {
       telegramBotClient.OnGroupMessage += (user, chat, message) =>
       {
-        if (NewUser(user))
-        {
-          AddUser(user);
-        }
+        var userInformation = GetUser(user);
 
-        AnalyzeMessage(user.Id, chat.Id, message);
+        AnalyzeMessage(userInformation, chat.Id, message);
       };
 
       _messageStatisticRepository = messageStatisticRepository;
-      this.userRepository = userRepository;
+      this._userRepository = userRepository;
     }
 
-    private void AddUser(User user)
+    private UserInformation GetUser(User user)
     {
-      userRepository.AddUser(new UserInformation(user.Id.ToString(), user.FirstName));
-      userRepository.Save();
+      return NewUser(user)
+        ? CreateUser(user)
+        : GetUserFromRepository(user);
+    }
+
+    private UserInformation GetUserFromRepository(User user)
+    {
+      return _userRepository[user.Id.ToString()];
+    }
+
+    private UserInformation CreateUser(User user)
+    {
+      var userInformation = new UserInformation(user.Id.ToString(), user.FirstName);
+
+      _userRepository.AddUser(userInformation);
+      _userRepository.Save();
+
+      return userInformation;
     }
 
     private bool NewUser(User user)
     {
-      return !userRepository.Exists(user.Id.ToString());
+      return !_userRepository.Exists(user.Id.ToString());
     }
 
-    internal MessageStatisticService()
+    internal void AnalyzeMessage(UserInformation user, ChatId chatId, Message message)
     {
-    }
-
-    internal void AnalyzeMessage(long userId, ChatId chatId, Message message)
-    {
-      var messageStatistic = GetStatistic(userId, chatId);
+      var messageStatistic = GetStatistic(user.Id, chatId);
 
       AnalyzeMessage(message, messageStatistic);
 
-      _messageStatisticRepository.Update(userId.ToString(), messageStatistic);
+      _messageStatisticRepository.Update(user, messageStatistic);
 
       _messageStatisticRepository.Save();
     }
@@ -79,7 +86,7 @@ namespace TelegramBot.MessageStatistic
         @"((http|https)://)?([a-zA-Z0-9\-]+\.)+[a-zA-Z0-9]+(/[a-zA-Z0-9\-/]+(\.[a-zA-Z0-9\-/]+)?)?(\?[a-zA-Z0-9\-/=&]+)?(#.*)?");
     }
 
-    internal MessageStatisticData GetStatistic(long userId, ChatId chatId)
+    internal MessageStatisticData GetStatistic(string userId, ChatId chatId)
     {
       if (!_messageStatistics.TryGetValue(userId, out var messageStatistic))
       {

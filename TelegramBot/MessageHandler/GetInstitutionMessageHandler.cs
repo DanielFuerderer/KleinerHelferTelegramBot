@@ -2,10 +2,9 @@
 using System.Linq;
 using Data;
 using Data.Data;
-using KleinerHelferBot.MessageHandler;
 using Telegram.Bot.Types;
 
-namespace TelegramBot.MessageHandler
+namespace KleinerHelferBot.MessageHandler
 {
   internal class GetInstitutionMessageHandler : IMessageHandler
   {

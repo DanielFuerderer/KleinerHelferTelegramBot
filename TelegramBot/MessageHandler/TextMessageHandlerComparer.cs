@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace TelegramBot.MessageHandler
+namespace KleinerHelferBot.MessageHandler
 {
   internal class TrimmedCaseInsensitiveEqualityComparer : IEqualityComparer<string>
   {

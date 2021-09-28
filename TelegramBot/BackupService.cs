@@ -4,7 +4,7 @@ using System.Linq;
 using System.Timers;
 using Data;
 
-namespace TelegramBot
+namespace KleinerHelferBot
 {
   public class BackupService
   {

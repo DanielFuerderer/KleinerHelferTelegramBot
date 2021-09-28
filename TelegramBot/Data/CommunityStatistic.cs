@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Data.Data;
 
-namespace TelegramBot.Data
+namespace KleinerHelferBot.Data
 {
   internal class CommunityStatistic
   {

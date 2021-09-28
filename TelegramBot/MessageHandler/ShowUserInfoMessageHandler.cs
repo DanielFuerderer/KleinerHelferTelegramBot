@@ -4,7 +4,7 @@ using Data;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
-namespace TelegramBot.MessageHandler
+namespace KleinerHelferBot.MessageHandler
 {
   internal interface IShowUserInfoMessageHandler //: IMessageHandler { }
   {

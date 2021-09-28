@@ -5,7 +5,7 @@ using Data;
 using Data.Data;
 using Telegram.Bot.Types;
 
-namespace TelegramBot.MessageHandler
+namespace KleinerHelferBot.MessageHandler
 {
   internal interface IAssignInstitutionMessageHandler : IMessageHandler { }
 
